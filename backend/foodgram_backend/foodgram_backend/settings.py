@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'rest_framework.authtoken',
     'djoser',
+    'django_filters',
     'users.apps.UsersConfig',
     'api.apps.ApiConfig',
     'recipes.apps.RecipesConfig',
@@ -85,7 +86,10 @@ REST_FRAMEWORK = {
         'rest_framework.permissions.AllowAny',
     ],
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination',
-    'PAGE_SIZE': 3
+    'PAGE_SIZE': 3,
+    'DEFAULT_FILTER_BACKENDS': [
+        'django_filters.rest_framework.DjangoFilterBackend',
+    ],
 }
 
 # Database
@@ -149,6 +153,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 DJOSER = {
     'LOGIN_FIELD': 'email',
     'HIDE_USERS': False,
+    'USER_CREATE_PASSWORD_RETYPE': False,
     'SERIALIZERS': {
         'user': 'api.serializers.UserSerializer',
         'current_user': 'api.serializers.UserSerializer',

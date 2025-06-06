@@ -3,6 +3,8 @@ from django.db import models
 from django.core.validators import MinValueValidator, MaxValueValidator
 import shortuuid
 
+from users.constants import INGREDIENT_AMOUNT_MIN
+
 
 User = get_user_model()
 
@@ -82,7 +84,7 @@ class Recipe(models.Model):
         verbose_name='Изображение',
         help_text='Добавитье изображение к рецепту'
     )
-    descriptions = models.TextField(
+    text = models.TextField(
         verbose_name='Описание',
         help_text='Введите описание рецепта',
     )
@@ -94,7 +96,8 @@ class Recipe(models.Model):
     tags = models.ManyToManyField(
         Tag,
         verbose_name='Теги',
-        help_text='Выберите теги'
+        help_text='Выберите теги',
+        related_name='recipes'
     )
     cooking_time = models.PositiveIntegerField(
         validators=[MinValueValidator(1), MaxValueValidator(1440)],
@@ -136,6 +139,46 @@ class Recipe(models.Model):
         verbose_name_plural = 'Рецепты'
 
 
+class RecipeIngredient(models.Model):
+    recipe = models.ForeignKey(
+        Recipe,
+        on_delete=models.CASCADE,
+        help_text='Укажите рецепт',
+        verbose_name='Рецепт',
+        related_name='recipe_ingredients'
+    )
+    ingredient = models.ForeignKey(
+        Ingredients,
+        on_delete=models.CASCADE,
+        help_text='Укажите ингредиент',
+        verbose_name='Ингредиент'
+    )
+    amount = models.PositiveSmallIntegerField(
+        validators=(MinValueValidator(
+            INGREDIENT_AMOUNT_MIN,
+            f'Минимальное количество {INGREDIENT_AMOUNT_MIN}'
+        ),),
+        help_text='Укажите количество',
+        verbose_name='Количество'
+    )
+
+    def __str__(self):
+        return (f'{self.recipe.name} - {self.ingredient.name} -'
+                f'{self.amount} {self.ingredient.measurement_unit}')
+
+    class Meta:
+        """
+        Метаданные модели IngrediRecipeIngredientents.
+
+        Атрибуты:
+            - verbose_name: Название модели в единственном числе.
+            - verbose_name_plural: Название модели во множественном числе.
+        """
+
+        verbose_name = 'Ингридиент в рецепте'
+        verbose_name_plural = 'Ингридиенты в рецепте'
+
+
 class Favorite(models.Model):
     user = models.ForeignKey(
         User,
@@ -174,12 +217,13 @@ class ShoppingList(models.Model):
         on_delete=models.CASCADE,
         related_name='shopper',
         verbose_name='Покупатель',
-        help_text='Укажите покупателя'
+        help_text='Укажите покупателя',
     )
-    recipes = models.ManyToManyField(
+    recipe = models.ManyToManyField(
         Recipe,
         verbose_name='Рецепты',
         help_text='Выберите рецепты для покупки ингридиентов',
+        related_name='in_shopping_lists'
     )
 
     def __str__(self):
@@ -191,3 +235,37 @@ class ShoppingList(models.Model):
 
         verbose_name = 'Список покупок'
         verbose_name_plural = 'Списки покупок'
+        unique_together = ('user',)
+
+
+class ShoppingListItem(models.Model):
+    shopping_list = models.ForeignKey(
+        ShoppingList,
+        on_delete=models.CASCADE,
+        verbose_name='Список покупок',
+        help_text='Укажите список покупок'
+    )
+    ingredient = models.ForeignKey(
+        Ingredients,
+        on_delete=models.CASCADE,
+        verbose_name='Ингредиенты',
+        help_text='Укажите Ингредиенты'
+    )
+    amount = models.DecimalField(
+        max_digits=6,
+        decimal_places=2,
+        verbose_name='Количество',
+        help_text='Укажите количество'
+    )
+
+    class Meta:
+        """
+        Метаданные модели ShoppingListItem.
+
+        Атрибуты:
+            - verbose_name: Название модели в единственном числе.
+            - verbose_name_plural: Название модели во множественном числе.
+        """
+
+        verbose_name = 'Ингридиент в списке покупок'
+        verbose_name_plural = 'Ингридиенты в списках покупок'

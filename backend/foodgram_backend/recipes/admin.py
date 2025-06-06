@@ -1,13 +1,30 @@
 from django.contrib import admin
 
-from .models import Tag, Recipe, Ingredients, Favorite, ShoppingList
+from .models import Tag, Recipe, Ingredients, Favorite, ShoppingList, RecipeIngredient, ShoppingListItem
+
+
+
+@admin.register(RecipeIngredient)
+class RecipeIngredientAdmin(admin.ModelAdmin):
+    """Настройка админки для модели RecipeIngredient."""
+
+    list_display = ('id', 'recipe', 'ingredient', 'amount')
+    search_fields = ('recipe',)
+
+
+@admin.register(ShoppingListItem)
+class ShoppingListItemientAdmin(admin.ModelAdmin):
+    """Настройка админки для модели ShoppingListItem."""
+
+    list_display = ('id', 'shopping_list', 'ingredient', 'amount')
+    search_fields = ('shopping_list',)
 
 
 @admin.register(Tag)
 class TagAdmin(admin.ModelAdmin):
     """Настройка админки для модели Tag."""
 
-    list_display = ('name', 'slug')
+    list_display = ('id', 'name', 'slug')
     search_fields = ('name',)
     prepopulated_fields = {'slug': ('name',)}
 
@@ -17,6 +34,7 @@ class IngredientAdmin(admin.ModelAdmin):
     """Настройка админки для модели Ingredients."""
 
     list_display = (
+        'id',
         'name',
         'measurement_unit',
     )
