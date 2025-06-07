@@ -1,40 +1,42 @@
-from django.shortcuts import get_object_or_404
-from django.http import HttpResponse
-from rest_framework import viewsets, status
 from django.contrib.auth import get_user_model
+from django.http import HttpResponse
 from django_filters.rest_framework import DjangoFilterBackend
+from django.shortcuts import get_object_or_404, redirect
+from django.views import View
+from rest_framework import status, viewsets
 from rest_framework.decorators import action
-from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
-from rest_framework.pagination import PageNumberPagination
+from rest_framework.response import Response
 
-from recipes.models import Tag, Recipe, Ingredients, Favorite, ShoppingList
-from users.models import Follow
+from .filters import IngredientFilter, RecipeFilter
 from .persmissions import IsAdminAuthorOrReadOnly
+from recipes.models import Favorite, Ingredients, Recipe, ShoppingList, Tag
 from .serializers import (
     AvatarSerializer,
     DownloadShoppingCartSerializer,
-    TagSerializer,
-    IngredientsSerializer,
-    RecipeReadSerializer,
-    RecipeWriteSerializer,
     FavoriteSerializer,
     FollowDetailSerializer,
     FollowSerializer,
-    UserSerializer,
-    UserRegistrationSerializer,
+    IngredientsSerializer,
     PasswordChangeSerializer,
+    RecipeReadSerializer,
+    RecipeWriteSerializer,
     ShortRecipeSerializer,
     ShortLinkSerializer,
     ShoppingCartSerializer,
+    TagSerializer,
+    UserSerializer,
+    UserRegistrationSerializer,
 )
-from .filters import IngredientFilter, RecipeFilter
+from users.models import Follow
 
 
 User = get_user_model()
 
 
 class TagViewSet(viewsets.ModelViewSet):
+    """Вьюсет для тегов."""
+
     queryset = Tag.objects.all()
     serializer_class = TagSerializer
     pagination_class = None
@@ -42,6 +44,8 @@ class TagViewSet(viewsets.ModelViewSet):
 
 
 class IngredientsViewSet(viewsets.ModelViewSet):
+    """Вьюсет для ингридиентов."""
+
     queryset = Ingredients.objects.all()
     serializer_class = IngredientsSerializer
     pagination_class = None
@@ -51,6 +55,8 @@ class IngredientsViewSet(viewsets.ModelViewSet):
 
 
 class RecipeViewSet(viewsets.ModelViewSet):
+    """Вьюсет для рецептов."""
+
     queryset = Recipe.objects.all()
     http_method_names = ['get', 'post', 'patch', 'delete']
     permission_classes = [IsAdminAuthorOrReadOnly,]
@@ -125,7 +131,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
         permission_classes=[IsAuthenticated,]
     )
     def download_shopping_cart(self, request):
-        """Список покупок."""
+        """Скачивание списка покупок."""
         shopping_list = get_object_or_404(ShoppingList, user=request.user)
         serializer = DownloadShoppingCartSerializer(shopping_list)
         text_content = "Список покупок:\n\n"
@@ -141,6 +147,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
 
     @action(detail=True, methods=['get'], url_path='get-link')
     def generate_short_link(self, request, pk=None):
+        """Генерация корроткой ссылки."""
         recipe = self.get_object()
         serializer = ShortLinkSerializer(recipe, context={'request': request})
         return Response(serializer.data, status=status.HTTP_200_OK)
@@ -173,6 +180,8 @@ class RecipeViewSet(viewsets.ModelViewSet):
 
 
 class UserViewSet(viewsets.ModelViewSet):
+    """Вьюсет для работы с пользователями и подписками."""
+
     queryset = User.objects.all()
     http_method_names = ['get', 'post', 'put', 'delete']
 
@@ -199,6 +208,7 @@ class UserViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=['post'], url_path='set_password')
     def set_password(self, request):
+        """Смена пароля."""
         serializer = PasswordChangeSerializer(
             data=request.data,
             context={'request': request}
@@ -254,7 +264,7 @@ class UserViewSet(viewsets.ModelViewSet):
         permission_classes=[IsAuthenticated]
     )
     def subscribe(self, request, pk=None):
-        """POST: Подписаться на пользователя, DELETE: отписаться"""
+        """Управление подпиской на пользователя."""
         user = request.user
         following = get_object_or_404(User, id=pk)
         if request.method == 'POST':
@@ -277,3 +287,11 @@ class UserViewSet(viewsets.ModelViewSet):
                 )
             follow.delete()
             return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class ShortLinkRedirectView(View):
+    """Veiw для редирект по корроткой ссылки."""
+
+    def get(self, request, short_id):
+        recipe = get_object_or_404(Recipe, short_id=short_id)
+        return redirect(f'/recipes/{recipe.id}/')

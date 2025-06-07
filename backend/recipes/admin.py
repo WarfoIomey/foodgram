@@ -1,6 +1,13 @@
 from django.contrib import admin
 
-from .models import Tag, Recipe, Ingredients, Favorite, ShoppingList, RecipeIngredient, ShoppingListItem
+from .models import (
+    Favorite,
+    Ingredients,
+    Recipe,
+    RecipeIngredient,
+    ShoppingList,
+    Tag,
+)
 
 
 
@@ -10,14 +17,6 @@ class RecipeIngredientAdmin(admin.ModelAdmin):
 
     list_display = ('id', 'recipe', 'ingredient', 'amount')
     search_fields = ('recipe',)
-
-
-@admin.register(ShoppingListItem)
-class ShoppingListItemientAdmin(admin.ModelAdmin):
-    """Настройка админки для модели ShoppingListItem."""
-
-    list_display = ('id', 'shopping_list', 'ingredient', 'amount')
-    search_fields = ('shopping_list',)
 
 
 @admin.register(Tag)
@@ -71,5 +70,5 @@ class FavoriteAdmin(admin.ModelAdmin):
 class ShoppingListAdmin(admin.ModelAdmin):
     """Настройка админки для модели ShoppingList."""
 
-    list_display = ('user',)
+    list_display = ('id', 'user',)
     search_fields = ('user',)

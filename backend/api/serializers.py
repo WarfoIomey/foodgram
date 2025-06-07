@@ -1,15 +1,20 @@
 import base64
 from django.contrib.auth import get_user_model
 from django.contrib.auth.password_validation import validate_password
-from django.contrib.auth.validators import UnicodeUsernameValidator
 from django.shortcuts import get_object_or_404
 from django.core.files.base import ContentFile
 from rest_framework import serializers
-from rest_framework.exceptions import NotFound, ValidationError
+from rest_framework.exceptions import ValidationError
 
-from recipes.models import Tag, Recipe, Ingredients, Favorite, ShoppingList, RecipeIngredient, ShoppingListItem
+from recipes.models import (
+    Favorite,
+    Ingredients,
+    Recipe,
+    RecipeIngredient,
+    ShoppingList,
+    Tag,
+)
 from users.models import Follow
-from users.validators import validate_username
 from users.constants import PAGE_SIZE
 
 
@@ -17,30 +22,19 @@ User = get_user_model()
 
 
 class Base64ImageField(serializers.ImageField):
+    """Сериализатор для фотографии в BASE64."""
+
     def to_internal_value(self, data):
         if isinstance(data, str) and data.startswith('data:image'):
             format, imgstr = data.split(';base64,')
             ext = format.split('/')[-1]
 
             data = ContentFile(base64.b64decode(imgstr), name='temp.' + ext)
-
         return super().to_internal_value(data)
 
 
-class BaseRecipeRelationSerializer(serializers.ModelSerializer):
-    name = serializers.CharField(source='recipe.name', read_only=True)
-    image = Base64ImageField(source='recipe.image', read_only=True)
-    cooking_time = serializers.IntegerField(
-        source='recipe.cooking_time',
-        read_only=True
-    )
-
-    class Meta:
-        abstract = True
-        fields = ('id', 'name', 'image', 'cooking_time')
-
-
 class TagSerializer(serializers.ModelSerializer):
+    """Сериализатор для тегов."""
 
     class Meta:
         model = Tag
@@ -50,7 +44,8 @@ class TagSerializer(serializers.ModelSerializer):
 
 
 class IngredientsSerializer(serializers.ModelSerializer):
-    """Получение ингредиентов."""
+    """Сериализатор для ингредиентов."""
+
     class Meta:
         model = Ingredients
         fields = (
@@ -59,6 +54,8 @@ class IngredientsSerializer(serializers.ModelSerializer):
 
 
 class RecipeIngredientsWriteSerializer(serializers.ModelSerializer):
+    """Сериализатор для записи количества."""
+
     id = serializers.IntegerField()
 
     class Meta:
@@ -67,6 +64,8 @@ class RecipeIngredientsWriteSerializer(serializers.ModelSerializer):
 
 
 class RecipeIngredientReadSerializer(serializers.ModelSerializer):
+    """Сериализатор для чтения с полем amount."""
+
     id = serializers.ReadOnlyField(source='ingredient.id')
     name = serializers.ReadOnlyField(source='ingredient.name')
     measurement_unit = serializers.ReadOnlyField(
@@ -79,7 +78,7 @@ class RecipeIngredientReadSerializer(serializers.ModelSerializer):
 
 
 class UserSerializer(serializers.ModelSerializer):
-    """Сериализатор для регистрации."""
+    """Сериализатор для пользователей."""
 
     is_subscribed = serializers.SerializerMethodField()
     avatar = Base64ImageField(required=False)
@@ -108,6 +107,7 @@ class UserSerializer(serializers.ModelSerializer):
 
 class UserRegistrationSerializer(serializers.ModelSerializer):
     """Сериализатор для регистрации пользователей."""
+
     password = serializers.CharField(
         write_only=True,
         validators=[validate_password]
@@ -137,15 +137,8 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
         return user
 
 
-class ShortRecipeSerializer(serializers.ModelSerializer):
-    image = Base64ImageField()
-
-    class Meta:
-        model = Recipe
-        fields = ('id', 'name', 'image', 'cooking_time')
-
-
 class PasswordChangeSerializer(serializers.Serializer):
+    """Сериализатор для смены пароля."""
     current_password = serializers.CharField(required=True)
     new_password = serializers.CharField(
         required=True,
@@ -159,7 +152,32 @@ class PasswordChangeSerializer(serializers.Serializer):
         return value
 
 
+class AvatarSerializer(serializers.ModelSerializer):
+    """Сериализатор для добавления автара."""
+
+    avatar = Base64ImageField()
+
+    class Meta:
+        model = User
+        fields = ('avatar',)
+        extra_kwargs = {
+            'avatar': {'required': True, 'allow_blank': False},
+        }
+
+
+class ShortRecipeSerializer(serializers.ModelSerializer):
+    """Сериализатор для краткой записий рецепта."""
+
+    image = Base64ImageField()
+
+    class Meta:
+        model = Recipe
+        fields = ('id', 'name', 'image', 'cooking_time')
+
+
 class FollowDetailSerializer(serializers.ModelSerializer):
+    """Сериализатор для полного вывода подписки."""
+
     email = serializers.ReadOnlyField(source='following.email')
     id = serializers.ReadOnlyField(source='following.id')
     username = serializers.ReadOnlyField(source='following.username')
@@ -240,6 +258,7 @@ class FollowSerializer(serializers.ModelSerializer):
 
 
 class FavoriteSerializer(serializers.ModelSerializer):
+    """Сериализатор для добавление в избранное."""
 
     class Meta:
         model = Favorite
@@ -265,21 +284,9 @@ class FavoriteSerializer(serializers.ModelSerializer):
         ).data
 
 
-class AvatarSerializer(serializers.ModelSerializer):
-    """Сериализатор для добавления автара."""
-
-    avatar = Base64ImageField()
-
-    class Meta:
-        model = User
-        fields = ('avatar',)
-        extra_kwargs = {
-            'avatar': {'required': True, 'allow_blank': False},
-        }
-
-
 class ShortLinkSerializer(serializers.ModelSerializer):
     """Сериализатор для получения корроткой ссылки."""
+
     short_link = serializers.SerializerMethodField()
 
     class Meta:
@@ -297,6 +304,7 @@ class ShortLinkSerializer(serializers.ModelSerializer):
 
 
 class ShoppingCartSerializer(serializers.ModelSerializer):
+    """Сериализатор для список покупок."""
 
     class Meta:
         model = ShoppingList
@@ -328,6 +336,8 @@ class ShoppingCartSerializer(serializers.ModelSerializer):
 
 
 class DownloadShoppingCartSerializer(serializers.ModelSerializer):
+    """Сериализатор для скачивание список покупок."""
+
     ingredients = serializers.SerializerMethodField()
     user = serializers.SlugRelatedField(
         read_only=True,
@@ -366,6 +376,8 @@ class DownloadShoppingCartSerializer(serializers.ModelSerializer):
 
 
 class RecipeReadSerializer(serializers.ModelSerializer):
+    """Сериализатор для вывода рецептов."""
+
     author = UserSerializer(read_only=True)
     ingredients = RecipeIngredientReadSerializer(
         many=True,
@@ -410,6 +422,8 @@ class RecipeReadSerializer(serializers.ModelSerializer):
 
 
 class RecipeWriteSerializer(serializers.ModelSerializer):
+    """Сериализатор для изменения рецептов."""
+
     ingredients = RecipeIngredientsWriteSerializer(
         many=True,
         allow_empty=False

@@ -10,6 +10,8 @@ User = get_user_model()
 
 
 class Tag(models.Model):
+    """Модель для тегов."""
+
     name = models.CharField(
         max_length=32,
         unique=True,
@@ -27,19 +29,13 @@ class Tag(models.Model):
         return f'{self.name}'
 
     class Meta:
-        """
-        Метаданные модели Tag.
-
-        Атрибуты:
-            - verbose_name: Название модели в единственном числе.
-            - verbose_name_plural: Название модели во множественном числе.
-        """
-
         verbose_name = 'Тег'
         verbose_name_plural = 'Теги'
 
 
 class Ingredients(models.Model):
+    """Модель для ингридиентов."""
+
     name = models.CharField(
         max_length=128,
         verbose_name='Название ингредиента',
@@ -55,19 +51,13 @@ class Ingredients(models.Model):
         return f'{self.name} - {self.measurement_unit}'
 
     class Meta:
-        """
-        Метаданные модели Ingredients.
-
-        Атрибуты:
-            - verbose_name: Название модели в единственном числе.
-            - verbose_name_plural: Название модели во множественном числе.
-        """
-
         verbose_name = 'Ингридиент'
         verbose_name_plural = 'Ингридиенты'
 
 
 class Recipe(models.Model):
+    """Модель для рецептов."""
+
     author = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
@@ -127,19 +117,13 @@ class Recipe(models.Model):
         return f'/r/{self.short_id}/'
 
     class Meta:
-        """
-        Метаданные модели Ingredients.
-
-        Атрибуты:
-            - verbose_name: Название модели в единственном числе.
-            - verbose_name_plural: Название модели во множественном числе.
-        """
-
         verbose_name = 'Рецепт'
         verbose_name_plural = 'Рецепты'
 
 
 class RecipeIngredient(models.Model):
+    """Модель для указание количества ингридиента в рецепте."""
+
     recipe = models.ForeignKey(
         Recipe,
         on_delete=models.CASCADE,
@@ -167,23 +151,16 @@ class RecipeIngredient(models.Model):
                 f'{self.amount} {self.ingredient.measurement_unit}')
 
     class Meta:
-        """
-        Метаданные модели IngrediRecipeIngredientents.
-
-        Атрибуты:
-            - verbose_name: Название модели в единственном числе.
-            - verbose_name_plural: Название модели во множественном числе.
-        """
-
         verbose_name = 'Ингридиент в рецепте'
         verbose_name_plural = 'Ингридиенты в рецепте'
 
 
 class Favorite(models.Model):
+    """Модель для добавления в избранное."""
+
     user = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
-        unique=True,
         help_text='Пользователь устанавливается автоматически',
         verbose_name='Пользователь',
     )
@@ -192,26 +169,19 @@ class Favorite(models.Model):
         on_delete=models.CASCADE,
         help_text='Укажите рецепт, чтобы добавить в избранное',
         verbose_name='Избранное',
-        unique=True,
     )
 
     def __str__(self):
         return f'{self.user.username} - {self.recipe.name}'
 
     class Meta:
-        """
-        Метаданные модели Favorite.
-
-        Атрибуты:
-            - verbose_name: Название модели в единственном числе.
-            - verbose_name_plural: Название модели во множественном числе.
-        """
-
         verbose_name = 'Избранный рецепт'
         verbose_name_plural = 'Избранные рецепты'
+        unique_together = ('user', 'recipe')
 
 
 class ShoppingList(models.Model):
+    """Модель списка покупки."""
     user = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
@@ -231,41 +201,6 @@ class ShoppingList(models.Model):
         return f'{self.user.username} '
 
     class Meta:
-        """Метаданные модели ShoppingList."""
-
         verbose_name = 'Список покупок'
         verbose_name_plural = 'Списки покупок'
         unique_together = ('user',)
-
-
-class ShoppingListItem(models.Model):
-    shopping_list = models.ForeignKey(
-        ShoppingList,
-        on_delete=models.CASCADE,
-        verbose_name='Список покупок',
-        help_text='Укажите список покупок'
-    )
-    ingredient = models.ForeignKey(
-        Ingredients,
-        on_delete=models.CASCADE,
-        verbose_name='Ингредиенты',
-        help_text='Укажите Ингредиенты'
-    )
-    amount = models.DecimalField(
-        max_digits=6,
-        decimal_places=2,
-        verbose_name='Количество',
-        help_text='Укажите количество'
-    )
-
-    class Meta:
-        """
-        Метаданные модели ShoppingListItem.
-
-        Атрибуты:
-            - verbose_name: Название модели в единственном числе.
-            - verbose_name_plural: Название модели во множественном числе.
-        """
-
-        verbose_name = 'Ингридиент в списке покупок'
-        verbose_name_plural = 'Ингридиенты в списках покупок'

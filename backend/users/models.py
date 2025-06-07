@@ -57,13 +57,7 @@ class User(AbstractUser):
 
 
 class Follow(models.Model):
-    """
-    Модель для хранения подписок.
-
-    Атрибуты:
-        - user: Пользователь, который подписывается.
-        - following: Пользователь, на которого подписываются.
-    """
+    """Модель для хранения подписок."""
 
     user = models.ForeignKey(
         User,
@@ -83,8 +77,6 @@ class Follow(models.Model):
         return f'{self.user.username} - {self.following.username}'
 
     class Meta:
-        """ Метаданные модели Follow."""
-
         verbose_name = 'Подписка'
         verbose_name_plural = 'Подписки'
         unique_together = ('user', 'following')

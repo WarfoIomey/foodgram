@@ -1,4 +1,6 @@
-from django_filters import rest_framework
+# from django_filters import rest_framework
+import django_filters
+from django_filters.rest_framework import FilterSet, BooleanFilter, ModelMultipleChoiceFilter
 from rest_framework.filters import SearchFilter
 
 from recipes.models import Recipe, Tag
@@ -10,30 +12,22 @@ class IngredientFilter(SearchFilter):
     search_param = 'name'
 
 
-class RecipeFilter(rest_framework.FilterSet):
+class RecipeFilter(FilterSet):
     """Фильтраци для рецептов."""
 
-    tags = rest_framework.filters.ModelMultipleChoiceFilter(
+    tags = ModelMultipleChoiceFilter(
         queryset=Tag.objects.all(),
         field_name='tags__slug',
         to_field_name='slug',
-        method='filter_tags'
     )
-    is_favorited = rest_framework.BooleanFilter(method='filter_favorited')
-    is_in_shopping_cart = rest_framework.BooleanFilter(
+    is_favorited = BooleanFilter(method='filter_favorited')
+    is_in_shopping_cart = BooleanFilter(
         method='filter_shopping_cart'
     )
 
     class Meta:
         model = Recipe
         fields = ('tags', 'author', 'is_favorited', 'is_in_shopping_cart')
-
-    def filter_tags(self, queryset, name, value):
-        if not value:
-            return queryset
-        return queryset.filter(
-            tags__slug__in=value
-        ).distinct()
 
     def filter_favorited(self, queryset, name, value):
         user = (
