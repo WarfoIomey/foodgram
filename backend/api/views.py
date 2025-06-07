@@ -59,7 +59,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
 
     queryset = Recipe.objects.all()
     http_method_names = ['get', 'post', 'patch', 'delete']
-    permission_classes = [IsAdminAuthorOrReadOnly,]
+    permission_classes = [IsAdminAuthorOrReadOnly]
     filter_backends = (DjangoFilterBackend,)
     filterset_class = RecipeFilter
 
@@ -128,7 +128,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
         detail=False,
         methods=['get'],
         url_path='download_shopping_cart',
-        permission_classes=[IsAuthenticated,]
+        permission_classes=[IsAuthenticated]
     )
     def download_shopping_cart(self, request):
         """Скачивание списка покупок."""
