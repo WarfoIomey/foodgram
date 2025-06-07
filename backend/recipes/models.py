@@ -51,6 +51,7 @@ class Ingredients(models.Model):
         return f'{self.name} - {self.measurement_unit}'
 
     class Meta:
+        ordering = ['-id']
         verbose_name = 'Ингридиент'
         verbose_name_plural = 'Ингридиенты'
 
@@ -117,6 +118,7 @@ class Recipe(models.Model):
         return f'/r/{self.short_id}/'
 
     class Meta:
+        ordering = ('-id',)
         verbose_name = 'Рецепт'
         verbose_name_plural = 'Рецепты'
 
@@ -151,6 +153,7 @@ class RecipeIngredient(models.Model):
                 f'{self.amount} {self.ingredient.measurement_unit}')
 
     class Meta:
+        ordering = ['-id']
         verbose_name = 'Ингридиент в рецепте'
         verbose_name_plural = 'Ингридиенты в рецепте'
 
@@ -175,6 +178,7 @@ class Favorite(models.Model):
         return f'{self.user.username} - {self.recipe.name}'
 
     class Meta:
+        ordering = ['-id']
         verbose_name = 'Избранный рецепт'
         verbose_name_plural = 'Избранные рецепты'
         unique_together = ('user', 'recipe')
@@ -201,6 +205,7 @@ class ShoppingList(models.Model):
         return f'{self.user.username} '
 
     class Meta:
+        ordering = ['-id']
         verbose_name = 'Список покупок'
         verbose_name_plural = 'Списки покупок'
         unique_together = ('user',)

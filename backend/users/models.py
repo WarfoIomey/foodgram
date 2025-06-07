@@ -51,7 +51,7 @@ class User(AbstractUser):
     REQUIRED_FIELDS = ['username']
 
     class Meta:
-        ordering = ['id']
+        ordering = ['-id']
         verbose_name = 'Пользователь'
         verbose_name_plural = 'Пользователи'
 
@@ -77,6 +77,7 @@ class Follow(models.Model):
         return f'{self.user.username} - {self.following.username}'
 
     class Meta:
+        ordering = ['-id']
         verbose_name = 'Подписка'
         verbose_name_plural = 'Подписки'
         unique_together = ('user', 'following')
