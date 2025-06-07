@@ -10,7 +10,6 @@ from .models import (
 )
 
 
-
 @admin.register(RecipeIngredient)
 class RecipeIngredientAdmin(admin.ModelAdmin):
     """Настройка админки для модели RecipeIngredient."""

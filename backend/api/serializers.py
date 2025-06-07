@@ -475,7 +475,10 @@ class RecipeWriteSerializer(serializers.ModelSerializer):
         missing_ids = set(ingredient_ids) - existing_ids
         if missing_ids:
             raise serializers.ValidationError(
-                {"ingredients": f"Ингредиенты с ID {missing_ids} не существуют."},
+                {
+                    "ingredients": ("Ингредиенты с ID",
+                                    f"{missing_ids} не существуют.")
+                },
                 code='ingredient_not_found'
             )
         return value
