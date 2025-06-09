@@ -72,12 +72,12 @@ class Follow(models.Model):
         help_text='Тот кто подписан'
     )
 
-    def __str__(self):
-        """Возвращает строковое представление подписки."""
-        return f'{self.user.username} - {self.following.username}'
-
     class Meta:
         ordering = ['-id']
         verbose_name = 'Подписка'
         verbose_name_plural = 'Подписки'
         unique_together = ('user', 'following')
+
+    def __str__(self):
+        """Возвращает строковое представление подписки."""
+        return f'{self.user.username} - {self.following.username}'

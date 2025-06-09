@@ -44,7 +44,7 @@ class TagViewSet(viewsets.ModelViewSet):
 
 
 class IngredientsViewSet(viewsets.ModelViewSet):
-    """Вьюсет для ингридиентов."""
+    """Вьюсет для ингредиентами ."""
 
     queryset = Ingredients.objects.all()
     serializer_class = IngredientsSerializer
@@ -147,7 +147,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
 
     @action(detail=True, methods=['get'], url_path='get-link')
     def generate_short_link(self, request, pk=None):
-        """Генерация корроткой ссылки."""
+        """Генерация короткой ссылки."""
         recipe = self.get_object()
         serializer = ShortLinkSerializer(recipe, context={'request': request})
         return Response(serializer.data, status=status.HTTP_200_OK)
@@ -187,7 +187,7 @@ class UserViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         if self.action == 'subscriptions':
-            return Follow.objects.filter(user=self.request.user)
+            return self.request.user.follower.all()
         return super().get_queryset()
 
     def get_serializer_class(self):
@@ -197,7 +197,8 @@ class UserViewSet(viewsets.ModelViewSet):
 
     @action(
         methods=['get'],
-        detail=False, url_path='me',
+        detail=False,
+        url_path='me',
         permission_classes=[IsAuthenticated],
     )
     def get_me(self, request):
@@ -276,10 +277,7 @@ class UserViewSet(viewsets.ModelViewSet):
             serializer.save(user=user)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         elif request.method == 'DELETE':
-            follow = Follow.objects.filter(
-                user=request.user,
-                following=following
-            ).first()
+            follow = request.user.follower.filter(following=following).first()
             if not follow:
                 return Response(
                     {"error": "Подписки нет"},
@@ -290,7 +288,7 @@ class UserViewSet(viewsets.ModelViewSet):
 
 
 class ShortLinkRedirectView(View):
-    """Veiw для редирект по корроткой ссылки."""
+    """VeiwSet для редирект по короткой ссылки."""
 
     def get(self, request, short_id):
         recipe = get_object_or_404(Recipe, short_id=short_id)
