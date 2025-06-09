@@ -28,7 +28,6 @@ from .serializers import (
     UserSerializer,
     UserRegistrationSerializer,
 )
-from users.models import Follow
 
 
 User = get_user_model()
