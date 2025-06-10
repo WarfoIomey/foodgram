@@ -5,6 +5,7 @@ from django.shortcuts import get_object_or_404, redirect
 from django.views import View
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
+from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
@@ -60,6 +61,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
     http_method_names = ['get', 'post', 'patch', 'delete']
     permission_classes = [IsAdminAuthorOrReadOnly]
     filter_backends = (DjangoFilterBackend,)
+    pagination_class = PageNumberPagination
     filterset_class = RecipeFilter
 
     def get_serializer_class(self):
