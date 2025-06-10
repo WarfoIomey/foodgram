@@ -489,6 +489,7 @@ class RecipeWriteSerializer(serializers.ModelSerializer):
             )
         return value
 
+    @staticmethod
     def create_recipe_ingredients_bulk(instance, ingredients_data):
         ingredients_to_create = [
             RecipeIngredient(
